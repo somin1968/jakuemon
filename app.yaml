@@ -1,0 +1,24 @@
+runtime: go
+api_version: go1
+
+handlers:
+- url: /api/.*
+  script: _go_app
+  secure: always
+- url: /
+  static_files: static/index.html
+  upload: static/index\.html
+  secure: always
+  http_headers:
+    Strict-Transport-Security: max-age=31536000; includeSubDomains
+    X-Frame-Options: DENY
+- url: /(.+)\.(txt|css|js|ico|png|svg|jpg|eot|ttf|woff)
+  static_files: static/\1.\2
+  upload: static/(.+)
+  secure: always
+
+skip_files:
+- ^(.*/)?app\.yaml
+- ^README\..*
+- \.gitignore
+- ^\.git/.*
