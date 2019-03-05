@@ -66,14 +66,31 @@ func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	vars := mux.Vars(r)
 	resp, err := service.Spreadsheets.Values.Get(vars["id"], vars["range"]).Do()
-	if err == nil {
-		respond(ctx, w, http.StatusOK, resp.Values)
-	} else {
+	if err != nil {
 		respond(ctx, w, http.StatusBadGateway, errorResponse{
 			Message: "スプレッドシートのデータが取得できませんでした。",
 			Debug:   fmt.Sprintf("%v", err),
 		})
+		return
 	}
+	rows := resp.Values
+	if len(rows) == 0 {
+		respond(ctx, w, http.StatusOK, nil)
+		return
+	}
+	header := rows[0]
+	var articles = make([]map[string]string, len(rows)-1)
+	for i, row := range rows {
+		if i == 0 {
+			continue
+		}
+		var article = map[string]string{}
+		for j, col := range row {
+			article[header[j].(string)] = col.(string)
+		}
+		articles[i-1] = article
+	}
+	respond(ctx, w, http.StatusOK, articles)
 }
 
 func init() {
