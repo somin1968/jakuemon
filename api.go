@@ -16,7 +16,14 @@ import (
 const (
 	JSON_FILE_PATH string = "jakuemon-235b6f83a3e3.json"
 	GSAPI_SCOPE    string = "https://www.googleapis.com/auth/spreadsheets"
+	SPREADSHEET_ID string = "1EphMrjBOswkOQNqgXDgUPTUwptYnFAnGMLu3v_FEHi8"
 )
+
+var rangeDict map[string]string = map[string]string{
+	"recents": "最新公演",
+	"topics":  "お知らせ",
+	"events":  "公演情報",
+}
 
 type errorResponse struct {
 	Message string      `json:"message"`
@@ -64,8 +71,15 @@ func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	vars := mux.Vars(r)
-	resp, err := service.Spreadsheets.Values.Get(vars["id"], vars["range"]).Do()
+	category, ok := rangeDict[mux.Vars(r)["category"]]
+	if ok == false {
+		respond(ctx, w, http.StatusBadRequest, errorResponse{
+			Message: "引数が不正です。",
+			Debug:   nil,
+		})
+		return
+	}
+	resp, err := service.Spreadsheets.Values.Get(SPREADSHEET_ID, category).Do()
 	if err != nil {
 		respond(ctx, w, http.StatusBadGateway, errorResponse{
 			Message: "スプレッドシートのデータが取得できませんでした。",
@@ -95,6 +109,6 @@ func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
 
 func init() {
 	r := mux.NewRouter().StrictSlash(true)
-	r.HandleFunc("/api/sheets/{id}/{range}/", apiSheetListHandler).Methods("GET")
+	r.HandleFunc("/api/sheets/{category}/", apiSheetListHandler).Methods("GET")
 	http.Handle("/", r)
 }
