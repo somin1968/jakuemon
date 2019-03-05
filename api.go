@@ -9,8 +9,10 @@ import (
 	"google.golang.org/api/sheets/v4"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/memcache"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 const (
@@ -55,6 +57,20 @@ func getClient(ctx context.Context) (*http.Client, error) {
 
 func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
+	category, ok := rangeDict[mux.Vars(r)["category"]]
+	if ok == false {
+		respond(ctx, w, http.StatusBadRequest, errorResponse{
+			Message: "引数が不正です。",
+			Debug:   nil,
+		})
+		return
+	}
+	var articles []map[string]string
+	_, err := memcache.JSON.Get(ctx, category, &articles)
+	if err == nil {
+		respond(ctx, w, http.StatusOK, articles)
+		return
+	}
 	client, err := getClient(ctx)
 	if err != nil {
 		respond(ctx, w, http.StatusBadGateway, errorResponse{
@@ -68,14 +84,6 @@ func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
 		respond(ctx, w, http.StatusBadGateway, errorResponse{
 			Message: "認証に失敗しました。",
 			Debug:   fmt.Sprintf("%v", err),
-		})
-		return
-	}
-	category, ok := rangeDict[mux.Vars(r)["category"]]
-	if ok == false {
-		respond(ctx, w, http.StatusBadRequest, errorResponse{
-			Message: "引数が不正です。",
-			Debug:   nil,
 		})
 		return
 	}
@@ -93,7 +101,7 @@ func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	header := rows[0]
-	var articles = make([]map[string]string, len(rows)-1)
+	articles = make([]map[string]string, len(rows)-1)
 	for i, row := range rows {
 		if i == 0 {
 			continue
@@ -104,6 +112,11 @@ func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		articles[i-1] = article
 	}
+	memcache.JSON.Set(ctx, &memcache.Item{
+		Key:        category,
+		Object:     articles,
+		Expiration: time.Duration(60*60) * time.Second,
+	})
 	respond(ctx, w, http.StatusOK, articles)
 }
 
