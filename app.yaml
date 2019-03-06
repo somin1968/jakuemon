@@ -5,6 +5,10 @@ handlers:
 - url: /api/.*
   script: _go_app
   secure: always
+- url: /ext/.*
+  script: _go_app
+  secure: always
+  login: admin
 - url: /
   static_files: static/index.html
   upload: static/index\.html

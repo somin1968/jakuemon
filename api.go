@@ -2,13 +2,12 @@ package jakuemon
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/sheets/v4"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/log"
+	// "google.golang.org/appengine/log"
 	"google.golang.org/appengine/memcache"
 	"io/ioutil"
 	"net/http"
@@ -16,31 +15,15 @@ import (
 )
 
 const (
-	JSON_FILE_PATH string = "jakuemon-235b6f83a3e3.json"
-	GSAPI_SCOPE    string = "https://www.googleapis.com/auth/spreadsheets"
-	SPREADSHEET_ID string = "1EphMrjBOswkOQNqgXDgUPTUwptYnFAnGMLu3v_FEHi8"
+	JSON_FILE_PATH   string = "jakuemon-235b6f83a3e3.json"
+	GSAPI_SCOPE      string = "https://www.googleapis.com/auth/spreadsheets"
+	SPREADSHEET_ID   string = "1EphMrjBOswkOQNqgXDgUPTUwptYnFAnGMLu3v_FEHi8"
 )
 
 var rangeDict map[string]string = map[string]string{
 	"recents": "最新公演",
 	"topics":  "お知らせ",
 	"events":  "公演情報",
-}
-
-type errorResponse struct {
-	Message string      `json:"message"`
-	Debug   interface{} `json:"debug"`
-}
-
-func respond(ctx context.Context, w http.ResponseWriter, status int, attributes interface{}) {
-	if status/100 >= 5 {
-		log.Errorf(ctx, "%#v", attributes)
-	} else if status/100 >= 3 {
-		log.Infof(ctx, "%#v", attributes)
-	}
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(attributes)
 }
 
 func getClient(ctx context.Context) (*http.Client, error) {
@@ -120,8 +103,7 @@ func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
 	respond(ctx, w, http.StatusOK, articles)
 }
 
-func init() {
-	r := mux.NewRouter().StrictSlash(true)
-	r.HandleFunc("/api/sheets/{category}/", apiSheetListHandler).Methods("GET")
-	http.Handle("/", r)
+func apiHandler(r *mux.Router) {
+	s := r.PathPrefix("/api").Subrouter()
+	s.HandleFunc("/sheets/{category}/", apiSheetListHandler).Methods("GET")
 }
