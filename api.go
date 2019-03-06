@@ -8,6 +8,8 @@ import (
 	"google.golang.org/api/sheets/v4"
 	"google.golang.org/appengine"
 	// "google.golang.org/appengine/log"
+	"github.com/flosch/pongo2"
+	"google.golang.org/appengine/mail"
 	"google.golang.org/appengine/memcache"
 	"io/ioutil"
 	"net/http"
@@ -19,7 +21,11 @@ const (
 	GSAPI_SCOPE      string = "https://www.googleapis.com/auth/spreadsheets"
 	SPREADSHEET_ID   string = "1EphMrjBOswkOQNqgXDgUPTUwptYnFAnGMLu3v_FEHi8"
 	MEMCACHE_EXPIRED int    = 60 * 60 * 12
+	TEMPLATE_PATH    string = "templates/"
+	MAIL_SENDER      string = "noreply@jakuemon.appspotmail.com"
 )
+
+var mailRecipients []string = []string{"somin@oheso.com"}
 
 var rangeDict map[string]string = map[string]string{
 	"recents": "最新公演",
@@ -104,7 +110,35 @@ func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
 	respond(ctx, w, http.StatusOK, articles)
 }
 
+func apiInquiryHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+	tpl, _ := pongo2.FromFile(TEMPLATE_PATH + "mail/inquiry.txt")
+	body, _ := tpl.Execute(pongo2.Context{
+		"name":    r.FormValue("name"),
+		"kana":    r.FormValue("kana"),
+		"phone":   r.FormValue("phone"),
+		"email":   r.FormValue("email"),
+		"message": r.FormValue("message"),
+	})
+	msg := &mail.Message{
+		Sender:  MAIL_SENDER,
+		To:      mailRecipients,
+		Subject: "中村雀右衛門オフィシャルウェブサイトから問い合わせがありました",
+		Body:    body,
+	}
+	err := mail.Send(ctx, msg)
+	if err != nil {
+		respond(ctx, w, http.StatusBadGateway, errorResponse{
+			Message: "メールの送信に失敗しました。",
+			Debug:   fmt.Sprintf("%v", err),
+		})
+		return
+	}
+	respond(ctx, w, http.StatusOK, "OK")
+}
+
 func apiHandler(r *mux.Router) {
 	s := r.PathPrefix("/api").Subrouter()
 	s.HandleFunc("/sheets/{category}/", apiSheetListHandler).Methods("GET")
+	s.HandleFunc("/inquiry/", apiInquiryHandler).Methods("POST")
 }
