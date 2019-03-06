@@ -18,6 +18,7 @@ const (
 	JSON_FILE_PATH   string = "jakuemon-235b6f83a3e3.json"
 	GSAPI_SCOPE      string = "https://www.googleapis.com/auth/spreadsheets"
 	SPREADSHEET_ID   string = "1EphMrjBOswkOQNqgXDgUPTUwptYnFAnGMLu3v_FEHi8"
+	MEMCACHE_EXPIRED int    = 60 * 60 * 12
 )
 
 var rangeDict map[string]string = map[string]string{
@@ -98,7 +99,7 @@ func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
 	memcache.JSON.Set(ctx, &memcache.Item{
 		Key:        category,
 		Object:     articles,
-		Expiration: time.Duration(60*60) * time.Second,
+		Expiration: time.Duration(MEMCACHE_EXPIRED) * time.Second,
 	})
 	respond(ctx, w, http.StatusOK, articles)
 }
