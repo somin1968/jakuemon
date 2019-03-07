@@ -614,23 +614,23 @@
             }
           });
 
-          var api_url = API_URL + 'fetch.php';
-          $.get(api_url, {}, function(response) {
-            var informationCompiled = _.template($('#information-template').html());
-            $('#information .informationInner').html(informationCompiled({
-              recents: response.recents,
-              topics: response.topics
-            }));
-            $('.myThumbnail img').MyThumbnail({
-              thumbWidth: 160,
-              thumbHeight: 160
-            });
-            var scheduleCompiled = _.template($('#schedule-template').html());
-            $('#schedule tbody').html(scheduleCompiled({
-              events: response.events
-            }));
-            setRowspan($('#schedule table'));
-          });
+          // var api_url = API_URL + 'fetch.php';
+          // $.get(api_url, {}, function(response) {
+          //   var informationCompiled = _.template($('#information-template').html());
+          //   $('#information .informationInner').html(informationCompiled({
+          //     recents: response.recents,
+          //     topics: response.topics
+          //   }));
+          //   $('.myThumbnail img').MyThumbnail({
+          //     thumbWidth: 160,
+          //     thumbHeight: 160
+          //   });
+          //   var scheduleCompiled = _.template($('#schedule-template').html());
+          //   $('#schedule tbody').html(scheduleCompiled({
+          //     events: response.events
+          //   }));
+          //   setRowspan($('#schedule table'));
+          // });
 
           var setRowspan = function($table) {
             var colIndexes = [0, 1, 2];
