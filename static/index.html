@@ -576,298 +576,300 @@
     <script src="/js/parallax.js"></script>
     <script src="/js/featherlight.js"></script>
     <script>
-      var API_URL = '/api/';
+      (function () {
+        'use strict';
+        var API_URL = '/api/';
 
-      function adjust() {
-        var viewport_h = $(window).height();
+        function adjust() {
+          var viewport_h = $(window).height();
 
-        $('.heightAsViewport').css({
-          height: viewport_h
-        });
+          $('.heightAsViewport').css({
+            height: viewport_h
+          });
 
-        $('.minHeightAsViewport').css({
-          minHeight: viewport_h
-        });
+          $('.minHeightAsViewport').css({
+            minHeight: viewport_h
+          });
 
-        $('#information .informationInner').css({
-          maxHeight: viewport_h - 260
-        });
-      }
-
-      function nl2br(string) {
-        if (typeof string !== 'string') {
-          return null;
+          $('#information .informationInner').css({
+            maxHeight: viewport_h - 260
+          });
         }
-        return string.replace(/(\r\n|\r|\n)/g, '<br>');
-      };
 
-      $(function() {
-        $('.backToTop').hide();
-
-        $(window).load(adjust).resize(adjust).scroll(function() {
-          if ($(window).scrollTop() > 100) {
-            $('.backToTop').fadeIn('slow');
-          } else {
-            $('.backToTop').hide();
+        function nl2br(string) {
+          if (typeof string !== 'string') {
+            return null;
           }
-        });
-
-        var api_url = API_URL + 'fetch.php';
-        $.get(api_url, {}, function(response) {
-          var informationCompiled = _.template($('#information-template').html());
-          $('#information .informationInner').html(informationCompiled({
-            recents: response.recents,
-            topics: response.topics
-          }));
-          $('.myThumbnail img').MyThumbnail({
-            thumbWidth: 160,
-            thumbHeight: 160
-          });
-          var scheduleCompiled = _.template($('#schedule-template').html());
-          $('#schedule tbody').html(scheduleCompiled({
-            events: response.events
-          }));
-          setRowspan($('#schedule table'));
-        });
-
-        var setRowspan = function($table) {
-          var colIndexes = [0, 1, 2];
-          var start = null;
-          var end = null;
-          var $prevRow = null;
-          var modifyElement = function($el) {
-            $.each(colIndexes, function() {
-              $el.eq(start).find('td').eq(this).attr('rowspan', end - start + 1);
-              for (var i = start; i < end; i++) {
-                $el.eq(i + 1).find('td').eq(this).css('display', 'none');
-              }
-            });
-          };
-          $table.find('tbody tr').each(function(index) {
-            if ($prevRow != null) {
-              $thisRow = $(this);
-              var flag = true;
-              $.each(colIndexes, function() {
-                if ($thisRow.find('td').eq(this).html() != $prevRow.find('td').eq(this).html()) {
-                  flag = false;
-                }
-              });
-              if (flag) {
-                if (start == null) {
-                  start = index - 1;
-                }
-              } else if (start != null) {
-                end = index - 1;
-                modifyElement($table.find('tbody tr'));
-                start = null;
-                end = null;
-              }
-            }
-            $prevRow = $(this);
-          });
-          if (start != null) {
-            end = start + 1;
-            modifyElement($table.find('tbody tr'));
-          }
+          return string.replace(/(\r\n|\r|\n)/g, '<br>');
         };
 
-        $('.navbar-collapse').on('shown.bs.collapse', function() {
-          $('.navbar-collapse.in .nav > li > a').on('click', function() {
-            $('.navbar-collapse').collapse('hide');
+        $(function() {
+          $('.backToTop').hide();
+
+          $(window).load(adjust).resize(adjust).scroll(function() {
+            if ($(window).scrollTop() > 100) {
+              $('.backToTop').fadeIn('slow');
+            } else {
+              $('.backToTop').hide();
+            }
           });
-        });
 
-        $('a[rel="external"]').click(function() {
-          window.open($(this).attr('href'), '_blank');
-          return false;
-        });
-
-        $('a[href*="#"]').click(function() {
-          if (this.hash == '#inquiry') {
-            $('#inquiry').find('.error, .done, .closeBtn').hide();
-            $('#inquiry').find('input, textarea').val('')
-            $('#inquiry form').show();
-            $('#inquiry').modal('show');
-          } else if (this.hash == '#req-reservation') {
-            $('#reservation').find('.error, .done, .closeBtn').hide();
-            $('#reservation').find('input, select, textarea').val('')
-            $('#reservation form').show();
-            $('#reservation .form').hide();
-            $('#reservation .intro').show();
-            $('#reservation').modal('show');
-          } else if (this.hash == '#req-fanclub') {
-            $('#request').find('.error, .done, .closeBtn').hide();
-            $('#request').find('input, textarea').val('')
-            $('#request form').show();
-            $('#request').modal('show');
-          } else if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '') && location.hostname == this.hostname) {
-            $('html, body').animate({
-              scrollTop: $(this.hash).offset().top
+          var api_url = API_URL + 'fetch.php';
+          $.get(api_url, {}, function(response) {
+            var informationCompiled = _.template($('#information-template').html());
+            $('#information .informationInner').html(informationCompiled({
+              recents: response.recents,
+              topics: response.topics
+            }));
+            $('.myThumbnail img').MyThumbnail({
+              thumbWidth: 160,
+              thumbHeight: 160
             });
-          }
-          return false;
-        });
-
-        $('#inquiry form').submit(function() {
-          $('#inquiry .error').hide();
-          var data = {
-            name: $('#inquiry input[name="name"]').val(),
-            kana: $('#inquiry input[name="kana"]').val(),
-            phone: $('#inquiry input[name="phone"]').val(),
-            email: $('#inquiry input[name="email"]').val(),
-            message: $('#inquiry textarea[name="message"]').val()
-          };
-          var errorMes = [];
-          if (!data.name) {
-            errorMes.push('お名前が入力されていません。');
-          }
-          if (!data.kana) {
-            errorMes.push('フリガナが入力されていません。');
-          }
-          if (!data.email) {
-            errorMes.push('メールアドレスが入力されていません。');
-          }
-          if (!data.message) {
-            errorMes.push('お問い合わせ内容が入力されていません。');
-          }
-          if (errorMes.length != 0) {
-            $('#inquiry .error').html(errorMes.join('<br>')).show();
-            return false;
-          }
-          $.ajax({
-            url: API_URL + 'inquiry/',
-            type: 'POST',
-            data: data
-          }).done(function(response, status, xhr) {
-            $('#inquiry form').hide();
-            $('#inquiry .done').text('フォームは正常に送信されました。').fadeIn();
-            $('#inquiry .closeBtn').show();
-          }).fail(function(xhr, status, error) {
-            $('#inquiry .error').text('サーバーとの通信時にエラーが発生しました。').show();
+            var scheduleCompiled = _.template($('#schedule-template').html());
+            $('#schedule tbody').html(scheduleCompiled({
+              events: response.events
+            }));
+            setRowspan($('#schedule table'));
           });
-          return false;
-        });
 
-        $('#reservation .reserveBtn').click(function() {
-          $('#reservation .intro').hide();
-          $('#reservation .form').fadeIn();
-        });
-
-        $('#reservation form').submit(function() {
-          $('#reservation .error').hide();
-          var data = {
-            name: $('#reservation input[name="name"]').val(),
-            kana: $('#reservation input[name="kana"]').val(),
-            phone: $('#reservation input[name="phone"]').val(),
-            email: $('#reservation input[name="email"]').val(),
-            zip: $('#reservation input[name="zip"]').val(),
-            address: $('#reservation input[name="address"]').val(),
-            place: $('#reservation input[name="place"]').val(),
-            preferred1: $('#reservation input[name="preferred1"]').val(),
-            preferred2: $('#reservation input[name="preferred2"]').val(),
-            schedule: $('#reservation select[name="schedule"]').val(),
-            seat: $('#reservation select[name="seat"]').val(),
-            qty: $('#reservation select[name="qty"]').val(),
-            message: $('#reservation textarea[name="message"]').val()
+          var setRowspan = function($table) {
+            var colIndexes = [0, 1, 2];
+            var start = null;
+            var end = null;
+            var $prevRow = null;
+            var modifyElement = function($el) {
+              $.each(colIndexes, function() {
+                $el.eq(start).find('td').eq(this).attr('rowspan', end - start + 1);
+                for (var i = start; i < end; i++) {
+                  $el.eq(i + 1).find('td').eq(this).css('display', 'none');
+                }
+              });
+            };
+            $table.find('tbody tr').each(function(index) {
+              if ($prevRow != null) {
+                $thisRow = $(this);
+                var flag = true;
+                $.each(colIndexes, function() {
+                  if ($thisRow.find('td').eq(this).html() != $prevRow.find('td').eq(this).html()) {
+                    flag = false;
+                  }
+                });
+                if (flag) {
+                  if (start == null) {
+                    start = index - 1;
+                  }
+                } else if (start != null) {
+                  end = index - 1;
+                  modifyElement($table.find('tbody tr'));
+                  start = null;
+                  end = null;
+                }
+              }
+              $prevRow = $(this);
+            });
+            if (start != null) {
+              end = start + 1;
+              modifyElement($table.find('tbody tr'));
+            }
           };
-          var errorMes = [];
-          if (!data.name) {
-            errorMes.push('お名前が入力されていません。');
-          }
-          if (!data.kana) {
-            errorMes.push('フリガナが入力されていません。');
-          }
-          if (!data.phone) {
-            errorMes.push('お電話番号が入力されていません。');
-          }
-          if (!data.email) {
-            errorMes.push('メールアドレスが入力されていません。');
-          }
-          if (!data.address) {
-            errorMes.push('ご住所が入力されていません。');
-          }
-          if (!data.place) {
-            errorMes.push('劇場・ホール名が入力されていません。');
-          }
-          if (!data.preferred1) {
-            errorMes.push('第一希望日程が入力されていません。');
-          }
-          if (!data.preferred2) {
-            errorMes.push('第二希望日程が入力されていません。');
-          }
-          if (!data.schedule) {
-            errorMes.push('お時間が選ばれていません。');
-          }
-          if (!data.seat) {
-            errorMes.push('お席が選ばれていません。');
-          }
-          if (!data.qty) {
-            errorMes.push('枚数が選ばれていません。');
-          }
-          if (errorMes.length != 0) {
-            $('#reservation .error').html(errorMes.join('<br>')).show();
-            return false;
-          }
-          $.ajax({
-            url: API_URL + 'reservation.php',
-            type: 'POST',
-            data: data
-          }).done(function(response, status, xhr) {
-            $('#reservation form').hide();
-            $('#reservation .done').text('フォームは正常に送信されました。').fadeIn();
-            $('#reservation .closeBtn').show();
-          }).fail(function(xhr, status, error) {
-            $('#reservation .error').text('サーバーとの通信時にエラーが発生しました。').show();
-          });
-          return false;
-        });
 
-        $('#request form').submit(function() {
-          $('#request .error').hide();
-          var data = {
-            name: $('#request input[name="name"]').val(),
-            kana: $('#request input[name="kana"]').val(),
-            phone: $('#request input[name="phone"]').val(),
-            email: $('#request input[name="email"]').val(),
-            zip: $('#request input[name="zip"]').val(),
-            address: $('#request input[name="address"]').val(),
-            message: $('#request textarea[name="message"]').val()
-          };
-          var errorMes = [];
-          if (!data.name) {
-            errorMes.push('お名前が入力されていません。');
-          }
-          if (!data.kana) {
-            errorMes.push('フリガナが入力されていません。');
-          }
-          if (!data.phone) {
-            errorMes.push('お電話番号が入力されていません。');
-          }
-          if (!data.email) {
-            errorMes.push('メールアドレスが入力されていません。');
-          }
-          if (!data.address) {
-            errorMes.push('ご住所が入力されていません。');
-          }
-          if (errorMes.length != 0) {
-            $('#request .error').html(errorMes.join('<br>')).show();
-            return false;
-          }
-          $.ajax({
-            url: API_URL + 'request.php',
-            type: 'POST',
-            data: data
-          }).done(function(response, status, xhr) {
-            $('#request form').hide();
-            $('#request .done').text('フォームは正常に送信されました。').fadeIn();
-            $('#request .closeBtn').show();
-          }).fail(function(xhr, status, error) {
-            $('#request .error').text('サーバーとの通信時にエラーが発生しました。').show();
+          $('.navbar-collapse').on('shown.bs.collapse', function() {
+            $('.navbar-collapse.in .nav > li > a').on('click', function() {
+              $('.navbar-collapse').collapse('hide');
+            });
           });
-          return false;
+
+          $('a[rel="external"]').click(function() {
+            window.open($(this).attr('href'), '_blank');
+            return false;
+          });
+
+          $('a[href*="#"]').click(function() {
+            if (this.hash == '#inquiry') {
+              $('#inquiry').find('.error, .done, .closeBtn').hide();
+              $('#inquiry').find('input, textarea').val('')
+              $('#inquiry form').show();
+              $('#inquiry').modal('show');
+            } else if (this.hash == '#req-reservation') {
+              $('#reservation').find('.error, .done, .closeBtn').hide();
+              $('#reservation').find('input, select, textarea').val('')
+              $('#reservation form').show();
+              $('#reservation .form').hide();
+              $('#reservation .intro').show();
+              $('#reservation').modal('show');
+            } else if (this.hash == '#req-fanclub') {
+              $('#request').find('.error, .done, .closeBtn').hide();
+              $('#request').find('input, textarea').val('')
+              $('#request form').show();
+              $('#request').modal('show');
+            } else if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '') && location.hostname == this.hostname) {
+              $('html, body').animate({
+                scrollTop: $(this.hash).offset().top
+              });
+            }
+            return false;
+          });
+
+          $('#inquiry form').submit(function() {
+            $('#inquiry .error').hide();
+            var data = {
+              name: $('#inquiry input[name="name"]').val(),
+              kana: $('#inquiry input[name="kana"]').val(),
+              phone: $('#inquiry input[name="phone"]').val(),
+              email: $('#inquiry input[name="email"]').val(),
+              message: $('#inquiry textarea[name="message"]').val()
+            };
+            var errorMes = [];
+            if (!data.name) {
+              errorMes.push('お名前が入力されていません。');
+            }
+            if (!data.kana) {
+              errorMes.push('フリガナが入力されていません。');
+            }
+            if (!data.email) {
+              errorMes.push('メールアドレスが入力されていません。');
+            }
+            if (!data.message) {
+              errorMes.push('お問い合わせ内容が入力されていません。');
+            }
+            if (errorMes.length != 0) {
+              $('#inquiry .error').html(errorMes.join('<br>')).show();
+              return false;
+            }
+            $.ajax({
+              url: API_URL + 'inquiry/',
+              type: 'POST',
+              data: data
+            }).done(function(response, status, xhr) {
+              $('#inquiry form').hide();
+              $('#inquiry .done').text('フォームは正常に送信されました。').fadeIn();
+              $('#inquiry .closeBtn').show();
+            }).fail(function(xhr, status, error) {
+              $('#inquiry .error').text('サーバーとの通信時にエラーが発生しました。').show();
+            });
+            return false;
+          });
+
+          $('#reservation .reserveBtn').click(function() {
+            $('#reservation .intro').hide();
+            $('#reservation .form').fadeIn();
+          });
+
+          $('#reservation form').submit(function() {
+            $('#reservation .error').hide();
+            var data = {
+              name: $('#reservation input[name="name"]').val(),
+              kana: $('#reservation input[name="kana"]').val(),
+              phone: $('#reservation input[name="phone"]').val(),
+              email: $('#reservation input[name="email"]').val(),
+              zip: $('#reservation input[name="zip"]').val(),
+              address: $('#reservation input[name="address"]').val(),
+              place: $('#reservation input[name="place"]').val(),
+              preferred1: $('#reservation input[name="preferred1"]').val(),
+              preferred2: $('#reservation input[name="preferred2"]').val(),
+              schedule: $('#reservation select[name="schedule"]').val(),
+              seat: $('#reservation select[name="seat"]').val(),
+              qty: $('#reservation select[name="qty"]').val(),
+              message: $('#reservation textarea[name="message"]').val()
+            };
+            var errorMes = [];
+            if (!data.name) {
+              errorMes.push('お名前が入力されていません。');
+            }
+            if (!data.kana) {
+              errorMes.push('フリガナが入力されていません。');
+            }
+            if (!data.phone) {
+              errorMes.push('お電話番号が入力されていません。');
+            }
+            if (!data.email) {
+              errorMes.push('メールアドレスが入力されていません。');
+            }
+            if (!data.address) {
+              errorMes.push('ご住所が入力されていません。');
+            }
+            if (!data.place) {
+              errorMes.push('劇場・ホール名が入力されていません。');
+            }
+            if (!data.preferred1) {
+              errorMes.push('第一希望日程が入力されていません。');
+            }
+            if (!data.preferred2) {
+              errorMes.push('第二希望日程が入力されていません。');
+            }
+            if (!data.schedule) {
+              errorMes.push('お時間が選ばれていません。');
+            }
+            if (!data.seat) {
+              errorMes.push('お席が選ばれていません。');
+            }
+            if (!data.qty) {
+              errorMes.push('枚数が選ばれていません。');
+            }
+            if (errorMes.length != 0) {
+              $('#reservation .error').html(errorMes.join('<br>')).show();
+              return false;
+            }
+            $.ajax({
+              url: API_URL + 'reservation.php',
+              type: 'POST',
+              data: data
+            }).done(function(response, status, xhr) {
+              $('#reservation form').hide();
+              $('#reservation .done').text('フォームは正常に送信されました。').fadeIn();
+              $('#reservation .closeBtn').show();
+            }).fail(function(xhr, status, error) {
+              $('#reservation .error').text('サーバーとの通信時にエラーが発生しました。').show();
+            });
+            return false;
+          });
+
+          $('#request form').submit(function() {
+            $('#request .error').hide();
+            var data = {
+              name: $('#request input[name="name"]').val(),
+              kana: $('#request input[name="kana"]').val(),
+              phone: $('#request input[name="phone"]').val(),
+              email: $('#request input[name="email"]').val(),
+              zip: $('#request input[name="zip"]').val(),
+              address: $('#request input[name="address"]').val(),
+              message: $('#request textarea[name="message"]').val()
+            };
+            var errorMes = [];
+            if (!data.name) {
+              errorMes.push('お名前が入力されていません。');
+            }
+            if (!data.kana) {
+              errorMes.push('フリガナが入力されていません。');
+            }
+            if (!data.phone) {
+              errorMes.push('お電話番号が入力されていません。');
+            }
+            if (!data.email) {
+              errorMes.push('メールアドレスが入力されていません。');
+            }
+            if (!data.address) {
+              errorMes.push('ご住所が入力されていません。');
+            }
+            if (errorMes.length != 0) {
+              $('#request .error').html(errorMes.join('<br>')).show();
+              return false;
+            }
+            $.ajax({
+              url: API_URL + 'request.php',
+              type: 'POST',
+              data: data
+            }).done(function(response, status, xhr) {
+              $('#request form').hide();
+              $('#request .done').text('フォームは正常に送信されました。').fadeIn();
+              $('#request .closeBtn').show();
+            }).fail(function(xhr, status, error) {
+              $('#request .error').text('サーバーとの通信時にエラーが発生しました。').show();
+            });
+            return false;
+          });
         });
-      });
+      }());
     </script>
-
   </body>
 </html>
