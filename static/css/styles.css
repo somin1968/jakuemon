@@ -205,20 +205,20 @@ section {
   background-image: url("../images/bg_information.png");
   padding: 100px 0 40px 0;
 }
-#information .informationInner {
+#information .whiteWell {
   overflow: auto;
 }
-#information .informationInner .media .media-left {
+#information .recentsInner .media .media-left {
   padding-right: 20px;
 }
-#information .informationInner .media .media-heading-alt {
+#information .recentsInner .media .media-heading-alt {
   margin: 0 0 3px 0;
 }
-#information .informationInner .media .media-heading {
+#information .recentsInner .media .media-heading {
   margin-bottom: 5px;
   line-height: 1;
 }
-#information .informationInner hr {
+#information hr {
   margin: 30px 0;
 }
 #about {
