@@ -137,8 +137,44 @@ func apiInquiryHandler(w http.ResponseWriter, r *http.Request) {
 	respond(ctx, w, http.StatusOK, "OK")
 }
 
+func apiReservationHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+	tpl, _ := pongo2.FromFile(TEMPLATE_PATH + "mail/reservation.txt")
+	body, _ := tpl.Execute(pongo2.Context{
+		"name":       r.FormValue("name"),
+		"kana":       r.FormValue("kana"),
+		"phone":      r.FormValue("phone"),
+		"email":      r.FormValue("email"),
+		"zip":        r.FormValue("zip"),
+		"address":    r.FormValue("address"),
+		"place":      r.FormValue("place"),
+		"preferred1": r.FormValue("preferred1"),
+		"preferred2": r.FormValue("preferred2"),
+		"schedule":   r.FormValue("schedule"),
+		"seat":       r.FormValue("seat"),
+		"qty":        r.FormValue("qty"),
+		"message":    r.FormValue("message"),
+	})
+	msg := &mail.Message{
+		Sender:  MAIL_SENDER,
+		To:      mailRecipients,
+		Subject: "中村雀右衛門オフィシャルウェブサイトから鑑賞券の予約申し込みがありました",
+		Body:    body,
+	}
+	err := mail.Send(ctx, msg)
+	if err != nil {
+		respond(ctx, w, http.StatusBadGateway, errorResponse{
+			Message: "メールの送信に失敗しました。",
+			Debug:   fmt.Sprintf("%v", err),
+		})
+		return
+	}
+	respond(ctx, w, http.StatusOK, "OK")
+}
+
 func apiHandler(r *mux.Router) {
 	s := r.PathPrefix("/api").Subrouter()
 	s.HandleFunc("/sheets/{category}/", apiSheetListHandler).Methods("GET")
 	s.HandleFunc("/inquiry/", apiInquiryHandler).Methods("POST")
+	s.HandleFunc("/reservation/", apiReservationHandler).Methods("POST")
 }
