@@ -25,7 +25,8 @@ const (
 	MAIL_SENDER      string = "noreply@jakuemon.appspotmail.com"
 )
 
-var mailRecipients []string = []string{"somin@oheso.com"}
+var mailRecipients []string = []string{"info@jakuemon.com"}
+var mailRecipients2 []string = []string{"ticket@jakuemon.com"}
 
 var rangeDict map[string]string = map[string]string{
 	"recents": "最新公演",
@@ -157,7 +158,7 @@ func apiReservationHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	msg := &mail.Message{
 		Sender:  MAIL_SENDER,
-		To:      mailRecipients,
+		To:      mailRecipients2,
 		Subject: "中村雀右衛門オフィシャルウェブサイトから鑑賞券の予約申し込みがありました",
 		Body:    body,
 	}
