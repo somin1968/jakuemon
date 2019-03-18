@@ -20,7 +20,7 @@ const (
 	JSON_FILE_PATH   string = "jakuemon-235b6f83a3e3.json"
 	GSAPI_SCOPE      string = "https://www.googleapis.com/auth/spreadsheets"
 	SPREADSHEET_ID   string = "1EphMrjBOswkOQNqgXDgUPTUwptYnFAnGMLu3v_FEHi8"
-	MEMCACHE_EXPIRED int    = 60 * 60 * 12
+	MEMCACHE_EXPIRED int    = 60 * 60
 	TEMPLATE_PATH    string = "templates/"
 	MAIL_SENDER      string = "noreply@jakuemon.appspotmail.com"
 )
