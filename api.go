@@ -1,19 +1,15 @@
-package jakuemon
+package main
 
 import (
-	"context"
 	"fmt"
+	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/sheets/v4"
-	"google.golang.org/appengine"
-	// "google.golang.org/appengine/log"
-	"github.com/flosch/pongo2"
-	"google.golang.org/appengine/mail"
-	"google.golang.org/appengine/memcache"
 	"io/ioutil"
+	"log"
 	"net/http"
-	"time"
 )
 
 const (
@@ -34,37 +30,36 @@ var rangeDict map[string]string = map[string]string{
 	"events":  "公演情報",
 }
 
-func getClient(ctx context.Context) (*http.Client, error) {
-	json, err := ioutil.ReadFile(JSON_FILE_PATH)
+func getClient() (*http.Client, error) {
+	data, err := ioutil.ReadFile(JSON_FILE_PATH)
 	if err != nil {
 		return nil, err
 	}
-	config, err := google.JWTConfigFromJSON(json, GSAPI_SCOPE)
+	config, err := google.JWTConfigFromJSON(data, GSAPI_SCOPE)
 	if err != nil {
 		return nil, err
 	}
-	return config.Client(ctx), nil
+	return config.Client(oauth2.NoContext), nil
 }
 
 func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
 	category, ok := rangeDict[mux.Vars(r)["category"]]
 	if ok == false {
-		respond(ctx, w, http.StatusBadRequest, errorResponse{
+		respond(w, http.StatusBadRequest, errorResponse{
 			Message: "引数が不正です。",
 			Debug:   nil,
 		})
 		return
 	}
 	var articles []map[string]string
-	_, err := memcache.JSON.Get(ctx, category, &articles)
-	if err == nil {
-		respond(ctx, w, http.StatusOK, articles)
-		return
-	}
-	client, err := getClient(ctx)
+	// _, err := memcache.JSON.Get(ctx, category, &articles)
+	// if err == nil {
+	// 	respond(ctx, w, http.StatusOK, articles)
+	// 	return
+	// }
+	client, err := getClient()
 	if err != nil {
-		respond(ctx, w, http.StatusBadGateway, errorResponse{
+		respond(w, http.StatusBadGateway, errorResponse{
 			Message: "認証に失敗しました。",
 			Debug:   fmt.Sprintf("%v", err),
 		})
@@ -72,7 +67,7 @@ func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	service, err := sheets.New(client)
 	if err != nil {
-		respond(ctx, w, http.StatusBadGateway, errorResponse{
+		respond(w, http.StatusBadGateway, errorResponse{
 			Message: "認証に失敗しました。",
 			Debug:   fmt.Sprintf("%v", err),
 		})
@@ -80,7 +75,7 @@ func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	resp, err := service.Spreadsheets.Values.Get(SPREADSHEET_ID, category).Do()
 	if err != nil {
-		respond(ctx, w, http.StatusBadGateway, errorResponse{
+		respond(w, http.StatusBadGateway, errorResponse{
 			Message: "スプレッドシートのデータが取得できませんでした。",
 			Debug:   fmt.Sprintf("%v", err),
 		})
@@ -88,7 +83,7 @@ func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	rows := resp.Values
 	if len(rows) == 0 {
-		respond(ctx, w, http.StatusOK, nil)
+		respond(w, http.StatusOK, nil)
 		return
 	}
 	header := rows[0]
@@ -103,16 +98,15 @@ func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		articles[i-1] = article
 	}
-	memcache.JSON.Set(ctx, &memcache.Item{
-		Key:        category,
-		Object:     articles,
-		Expiration: time.Duration(MEMCACHE_EXPIRED) * time.Second,
-	})
-	respond(ctx, w, http.StatusOK, articles)
+	// memcache.JSON.Set(ctx, &memcache.Item{
+	// 	Key:        category,
+	// 	Object:     articles,
+	// 	Expiration: time.Duration(MEMCACHE_EXPIRED) * time.Second,
+	// })
+	respond(w, http.StatusOK, articles)
 }
 
 func apiInquiryHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
 	tpl, _ := pongo2.FromFile(TEMPLATE_PATH + "mail/inquiry.txt")
 	body, _ := tpl.Execute(pongo2.Context{
 		"name":    r.FormValue("name"),
@@ -121,25 +115,25 @@ func apiInquiryHandler(w http.ResponseWriter, r *http.Request) {
 		"email":   r.FormValue("email"),
 		"message": r.FormValue("message"),
 	})
-	msg := &mail.Message{
-		Sender:  MAIL_SENDER,
-		To:      mailRecipients,
-		Subject: "中村雀右衛門オフィシャルウェブサイトから問い合わせがありました",
-		Body:    body,
-	}
-	err := mail.Send(ctx, msg)
-	if err != nil {
-		respond(ctx, w, http.StatusBadGateway, errorResponse{
-			Message: "メールの送信に失敗しました。",
-			Debug:   fmt.Sprintf("%v", err),
-		})
-		return
-	}
-	respond(ctx, w, http.StatusOK, "OK")
+	log.Printf("%#v", body)
+	// msg := &mail.Message{
+	// 	Sender:  MAIL_SENDER,
+	// 	To:      mailRecipients,
+	// 	Subject: "中村雀右衛門オフィシャルウェブサイトから問い合わせがありました",
+	// 	Body:    body,
+	// }
+	// err := mail.Send(ctx, msg)
+	// if err != nil {
+	// 	respond(w, http.StatusBadGateway, errorResponse{
+	// 		Message: "メールの送信に失敗しました。",
+	// 		Debug:   fmt.Sprintf("%v", err),
+	// 	})
+	// 	return
+	// }
+	respond(w, http.StatusOK, "OK")
 }
 
 func apiReservationHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
 	tpl, _ := pongo2.FromFile(TEMPLATE_PATH + "mail/reservation.txt")
 	body, _ := tpl.Execute(pongo2.Context{
 		"name":       r.FormValue("name"),
@@ -156,25 +150,25 @@ func apiReservationHandler(w http.ResponseWriter, r *http.Request) {
 		"qty":        r.FormValue("qty"),
 		"message":    r.FormValue("message"),
 	})
-	msg := &mail.Message{
-		Sender:  MAIL_SENDER,
-		To:      mailRecipients2,
-		Subject: "中村雀右衛門オフィシャルウェブサイトから鑑賞券の予約申し込みがありました",
-		Body:    body,
-	}
-	err := mail.Send(ctx, msg)
-	if err != nil {
-		respond(ctx, w, http.StatusBadGateway, errorResponse{
-			Message: "メールの送信に失敗しました。",
-			Debug:   fmt.Sprintf("%v", err),
-		})
-		return
-	}
-	respond(ctx, w, http.StatusOK, "OK")
+	log.Printf("%#v", body)
+	// msg := &mail.Message{
+	// 	Sender:  MAIL_SENDER,
+	// 	To:      mailRecipients2,
+	// 	Subject: "中村雀右衛門オフィシャルウェブサイトから鑑賞券の予約申し込みがありました",
+	// 	Body:    body,
+	// }
+	// err := mail.Send(ctx, msg)
+	// if err != nil {
+	// 	respond(w, http.StatusBadGateway, errorResponse{
+	// 		Message: "メールの送信に失敗しました。",
+	// 		Debug:   fmt.Sprintf("%v", err),
+	// 	})
+	// 	return
+	// }
+	respond(w, http.StatusOK, "OK")
 }
 
 func apiRequestHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
 	tpl, _ := pongo2.FromFile(TEMPLATE_PATH + "mail/request.txt")
 	body, _ := tpl.Execute(pongo2.Context{
 		"name":    r.FormValue("name"),
@@ -185,21 +179,22 @@ func apiRequestHandler(w http.ResponseWriter, r *http.Request) {
 		"address": r.FormValue("address"),
 		"message": r.FormValue("message"),
 	})
-	msg := &mail.Message{
-		Sender:  MAIL_SENDER,
-		To:      mailRecipients,
-		Subject: "中村雀右衛門オフィシャルウェブサイトから後援会の資料請求がありました",
-		Body:    body,
-	}
-	err := mail.Send(ctx, msg)
-	if err != nil {
-		respond(ctx, w, http.StatusBadGateway, errorResponse{
-			Message: "メールの送信に失敗しました。",
-			Debug:   fmt.Sprintf("%v", err),
-		})
-		return
-	}
-	respond(ctx, w, http.StatusOK, "OK")
+	log.Printf("%#v", body)
+	// msg := &mail.Message{
+	// 	Sender:  MAIL_SENDER,
+	// 	To:      mailRecipients,
+	// 	Subject: "中村雀右衛門オフィシャルウェブサイトから後援会の資料請求がありました",
+	// 	Body:    body,
+	// }
+	// err := mail.Send(ctx, msg)
+	// if err != nil {
+	// 	respond(w, http.StatusBadGateway, errorResponse{
+	// 		Message: "メールの送信に失敗しました。",
+	// 		Debug:   fmt.Sprintf("%v", err),
+	// 	})
+	// 	return
+	// }
+	respond(w, http.StatusOK, "OK")
 }
 
 func apiHandler(r *mux.Router) {

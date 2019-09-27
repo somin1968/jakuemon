@@ -1,9 +1,8 @@
-package jakuemon
+package main
 
 import (
-	"context"
 	"encoding/json"
-	"google.golang.org/appengine/log"
+	"log"
 	"net/http"
 )
 
@@ -12,11 +11,11 @@ type errorResponse struct {
 	Debug   interface{} `json:"debug"`
 }
 
-func respond(ctx context.Context, w http.ResponseWriter, status int, attributes interface{}) {
+func respond(w http.ResponseWriter, status int, attributes interface{}) {
 	if status/100 >= 5 {
-		log.Errorf(ctx, "%#v", attributes)
+		log.Printf("%#v", attributes)
 	} else if status/100 >= 3 {
-		log.Infof(ctx, "%#v", attributes)
+		log.Printf("%#v", attributes)
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(status)

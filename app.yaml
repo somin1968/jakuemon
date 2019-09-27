@@ -1,12 +1,11 @@
-runtime: go
-api_version: go1
+runtime: go111
 
 handlers:
 - url: /api/.*
-  script: _go_app
+  script: auto
   secure: always
 - url: /ext/.*
-  script: _go_app
+  script: auto
   secure: always
   login: admin
 - url: /
@@ -20,9 +19,3 @@ handlers:
   static_files: static/\1.\2
   upload: static/(.+)
   secure: always
-
-skip_files:
-- ^(.*/)?app\.yaml
-- ^README\..*
-- \.gitignore
-- ^\.git/.*
