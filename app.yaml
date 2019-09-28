@@ -1,3 +1,5 @@
+# application: jakuemon
+# version: 2
 runtime: go111
 
 handlers:
