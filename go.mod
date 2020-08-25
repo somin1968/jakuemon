@@ -4,7 +4,6 @@ go 1.11
 
 require (
 	github.com/flosch/pongo2 v0.0.0-20190707114632-bbf5a6c351f4
-	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/gorilla/handlers v1.5.0
 	github.com/gorilla/mux v1.7.3
 	github.com/sendgrid/rest v2.4.1+incompatible // indirect
