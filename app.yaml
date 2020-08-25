@@ -6,10 +6,6 @@ handlers:
 - url: /api/.*
   script: auto
   secure: always
-- url: /ext/.*
-  script: auto
-  secure: always
-  login: admin
 - url: /
   static_files: static/index.html
   upload: static/index\.html

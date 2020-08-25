@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/gorilla/handlers"
+	"fmt"
 	"github.com/gorilla/mux"
 	yaml "gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -20,7 +20,6 @@ var setting struct {
 }
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	buf, err := ioutil.ReadFile(SECRET_YAML_PATH)
 	if err != nil {
 		log.Fatal(err)
@@ -29,13 +28,10 @@ func main() {
 	r := mux.NewRouter().StrictSlash(true)
 	apiHandler(r)
 	http.Handle("/", r)
-	loggingHandler := handlers.CombinedLoggingHandler(os.Stderr, r)
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 	log.Printf("Listening on port %s", port)
-	if err := http.ListenAndServe(":"+port, loggingHandler); err != nil {
-		log.Fatal(err)
-	}
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), r))
 }
