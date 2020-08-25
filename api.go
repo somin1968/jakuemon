@@ -8,21 +8,18 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/sheets/v4"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
 const (
-	JSON_FILE_PATH   string = "jakuemon-235b6f83a3e3.json"
-	GSAPI_SCOPE      string = "https://www.googleapis.com/auth/spreadsheets"
-	SPREADSHEET_ID   string = "1EphMrjBOswkOQNqgXDgUPTUwptYnFAnGMLu3v_FEHi8"
-	MEMCACHE_EXPIRED int    = 60 * 60
-	TEMPLATE_PATH    string = "templates/"
-	MAIL_SENDER      string = "noreply@jakuemon.appspotmail.com"
+	JSON_FILE_PATH string = "jakuemon-235b6f83a3e3.json"
+	GSAPI_SCOPE    string = "https://www.googleapis.com/auth/spreadsheets"
+	SPREADSHEET_ID string = "1EphMrjBOswkOQNqgXDgUPTUwptYnFAnGMLu3v_FEHi8"
+	TEMPLATE_PATH  string = "templates/"
 )
 
-var mailRecipients []string = []string{"info@jakuemon.com"}
-var mailRecipients2 []string = []string{"ticket@jakuemon.com"}
+var mailRecipientInfo string = "info@jakuemon.com"
+var mailRecipientTicket string = "ticket@jakuemon.com"
 
 var rangeDict map[string]string = map[string]string{
 	"recents": "最新公演",
@@ -52,11 +49,6 @@ func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var articles []map[string]string
-	// _, err := memcache.JSON.Get(ctx, category, &articles)
-	// if err == nil {
-	// 	respond(ctx, w, http.StatusOK, articles)
-	// 	return
-	// }
 	client, err := getClient()
 	if err != nil {
 		respond(w, http.StatusBadGateway, errorResponse{
@@ -98,11 +90,6 @@ func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		articles[i-1] = article
 	}
-	// memcache.JSON.Set(ctx, &memcache.Item{
-	// 	Key:        category,
-	// 	Object:     articles,
-	// 	Expiration: time.Duration(MEMCACHE_EXPIRED) * time.Second,
-	// })
 	respond(w, http.StatusOK, articles)
 }
 
@@ -115,21 +102,18 @@ func apiInquiryHandler(w http.ResponseWriter, r *http.Request) {
 		"email":   r.FormValue("email"),
 		"message": r.FormValue("message"),
 	})
-	log.Printf("%#v", body)
-	// msg := &mail.Message{
-	// 	Sender:  MAIL_SENDER,
-	// 	To:      mailRecipients,
-	// 	Subject: "中村雀右衛門オフィシャルウェブサイトから問い合わせがありました",
-	// 	Body:    body,
-	// }
-	// err := mail.Send(ctx, msg)
-	// if err != nil {
-	// 	respond(w, http.StatusBadGateway, errorResponse{
-	// 		Message: "メールの送信に失敗しました。",
-	// 		Debug:   fmt.Sprintf("%v", err),
-	// 	})
-	// 	return
-	// }
+	err := sendMail(
+		mailRecipientInfo,
+		"中村雀右衛門オフィシャルウェブサイトから問い合わせがありました",
+		body,
+	)
+	if err != nil {
+		respond(w, http.StatusBadGateway, errorResponse{
+			Message: "メールの送信に失敗しました。",
+			Debug:   fmt.Sprintf("%v", err),
+		})
+		return
+	}
 	respond(w, http.StatusOK, "OK")
 }
 
@@ -150,21 +134,18 @@ func apiReservationHandler(w http.ResponseWriter, r *http.Request) {
 		"qty":        r.FormValue("qty"),
 		"message":    r.FormValue("message"),
 	})
-	log.Printf("%#v", body)
-	// msg := &mail.Message{
-	// 	Sender:  MAIL_SENDER,
-	// 	To:      mailRecipients2,
-	// 	Subject: "中村雀右衛門オフィシャルウェブサイトから鑑賞券の予約申し込みがありました",
-	// 	Body:    body,
-	// }
-	// err := mail.Send(ctx, msg)
-	// if err != nil {
-	// 	respond(w, http.StatusBadGateway, errorResponse{
-	// 		Message: "メールの送信に失敗しました。",
-	// 		Debug:   fmt.Sprintf("%v", err),
-	// 	})
-	// 	return
-	// }
+	err := sendMail(
+		mailRecipientTicket,
+		"中村雀右衛門オフィシャルウェブサイトから鑑賞券の予約申し込みがありました",
+		body,
+	)
+	if err != nil {
+		respond(w, http.StatusBadGateway, errorResponse{
+			Message: "メールの送信に失敗しました。",
+			Debug:   fmt.Sprintf("%v", err),
+		})
+		return
+	}
 	respond(w, http.StatusOK, "OK")
 }
 
@@ -179,21 +160,18 @@ func apiRequestHandler(w http.ResponseWriter, r *http.Request) {
 		"address": r.FormValue("address"),
 		"message": r.FormValue("message"),
 	})
-	log.Printf("%#v", body)
-	// msg := &mail.Message{
-	// 	Sender:  MAIL_SENDER,
-	// 	To:      mailRecipients,
-	// 	Subject: "中村雀右衛門オフィシャルウェブサイトから後援会の資料請求がありました",
-	// 	Body:    body,
-	// }
-	// err := mail.Send(ctx, msg)
-	// if err != nil {
-	// 	respond(w, http.StatusBadGateway, errorResponse{
-	// 		Message: "メールの送信に失敗しました。",
-	// 		Debug:   fmt.Sprintf("%v", err),
-	// 	})
-	// 	return
-	// }
+	err := sendMail(
+		mailRecipientInfo,
+		"中村雀右衛門オフィシャルウェブサイトから後援会の資料請求がありました",
+		body,
+	)
+	if err != nil {
+		respond(w, http.StatusBadGateway, errorResponse{
+			Message: "メールの送信に失敗しました。",
+			Debug:   fmt.Sprintf("%v", err),
+		})
+		return
+	}
 	respond(w, http.StatusOK, "OK")
 }
 
