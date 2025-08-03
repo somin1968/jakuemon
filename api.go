@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+	"os"
+
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/sheets/v4"
-	"io/ioutil"
-	"net/http"
 )
 
 const (
@@ -28,7 +29,7 @@ var rangeDict map[string]string = map[string]string{
 }
 
 func getClient() (*http.Client, error) {
-	data, err := ioutil.ReadFile(JSON_FILE_PATH)
+	data, err := os.ReadFile(JSON_FILE_PATH)
 	if err != nil {
 		return nil, err
 	}

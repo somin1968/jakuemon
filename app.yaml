@@ -1,6 +1,6 @@
 # application: jakuemon
 # version: 2
-runtime: go111
+runtime: go123
 
 handlers:
 - url: /api/.*

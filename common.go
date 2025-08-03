@@ -3,18 +3,19 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sendgrid/sendgrid-go"
-	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"log"
 	"net/http"
+
+	"github.com/sendgrid/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
 type errorResponse struct {
-	Message string      `json:"message"`
-	Debug   interface{} `json:"debug"`
+	Message string `json:"message"`
+	Debug   any    `json:"debug"`
 }
 
-func respond(w http.ResponseWriter, status int, attributes interface{}) {
+func respond(w http.ResponseWriter, status int, attributes any) {
 	if status/100 >= 5 {
 		log.Printf("%#v", attributes)
 	} else if status/100 >= 3 {
