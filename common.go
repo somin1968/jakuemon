@@ -36,12 +36,6 @@ func convertNewLine(str, nlcode string) string {
 }
 
 func sendMail(recipient, subject, body string) error {
-	// client := sendgrid.NewSendClient(setting.Sendgrid.ApiKey)
-	// from := mail.NewEmail("中村雀右衛門オフィシャルウェブサイト", setting.Sendgrid.Sender)
-	// to := mail.NewEmail("", recipient)
-	// content := mail.NewContent("text/plain", plainTextContent)
-	// message := mail.NewV3MailInit(from, subject, to, content)
-	// response, err := client.Send(message)
 	cfg := brevo.NewConfiguration()
 	cfg.AddDefaultHeader("api-key", setting.Brevo.ApiKey)
 	client := brevo.NewAPIClient(cfg)
@@ -58,12 +52,6 @@ func sendMail(recipient, subject, body string) error {
 		HtmlContent: body,
 		Subject:     subject,
 	}
-	// email.Subject = subject
-	// email.HtmlContent = plainTextContent
-	// email.TextContent = convertNewLine(plainTextContent, "\r\n")
-	// email.Sender = &brevo.SendSmtpEmailSender{
-	// 	Email: setting.Brevo.Sender,
-	// }
 	_, response, err := client.TransactionalEmailsApi.SendTransacEmail(context.Background(), email)
 	if err != nil {
 		return err

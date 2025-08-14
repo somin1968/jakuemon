@@ -13,10 +13,6 @@ import (
 const SECRET_YAML_PATH = "secret.yaml"
 
 var setting struct {
-	Sendgrid struct {
-		ApiKey string `yaml:"apikey"`
-		Sender string `yaml:"sender"`
-	} `yaml:"sendgrid"`
 	Brevo struct {
 		ApiKey string `yaml:"apikey"`
 		Sender string `yaml:"sender"`

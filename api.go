@@ -163,8 +163,7 @@ func apiRequestHandler(w http.ResponseWriter, r *http.Request) {
 		"message": strings.ReplaceAll(r.FormValue("message"), "\n", "<br />"),
 	})
 	err := sendMail(
-		// mailRecipientInfo,
-		"somin@oheso.com",
+		mailRecipientInfo,
 		"中村雀右衛門オフィシャルウェブサイトから後援会の資料請求がありました",
 		body,
 	)
