@@ -5,7 +5,7 @@ go 1.23.3
 require (
 	github.com/flosch/pongo2 v0.0.0-20200913210552-0d938eb266f3
 	github.com/gorilla/mux v1.8.1
-	github.com/sendgrid/sendgrid-go v3.16.1+incompatible
+	github.com/sendinblue/APIv3-go-library/v2 v2.1.2
 	golang.org/x/oauth2 v0.30.0
 	google.golang.org/api v0.244.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -23,8 +23,6 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
 	github.com/googleapis/gax-go/v2 v2.15.0 // indirect
-	github.com/sendgrid/rest v2.6.9+incompatible // indirect
-	github.com/sendinblue/APIv3-go-library/v2 v2.1.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0 // indirect
 	go.opentelemetry.io/otel v1.37.0 // indirect
