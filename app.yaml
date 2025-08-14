@@ -1,5 +1,5 @@
 # application: jakuemon
-# version: 2
+# version: 2-1
 runtime: go123
 
 handlers:
