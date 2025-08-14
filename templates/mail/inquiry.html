@@ -1,0 +1,21 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+  </head>
+
+  <body>
+    <p>中村雀右衛門オフィシャルウェブサイトから問い合わせがありました。</p>
+
+    <p>
+      お名前: {{ name }}<br />
+      フリガナ: {{ kana }}<br />
+      お電話番号: {{ phone }}<br />
+      メールアドレス: {{ email }}
+    </p>
+
+    <p>
+      問い合わせ内容: <br />
+      {% autoescape off %}{{ message }}{% endautoescape %}
+    </p>
+  </body>
+</html>

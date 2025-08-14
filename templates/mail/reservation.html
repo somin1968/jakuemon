@@ -1,0 +1,29 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+  </head>
+
+  <body>
+    <p>中村雀右衛門オフィシャルウェブサイトから鑑賞券の予約申し込みがありました。</p>
+
+    <p>
+      お名前: {{ name }}<br />
+      フリガナ: {{ kana }}<br />
+      お電話番号: {{ phone }}<br />
+      メールアドレス: {{ email }}<br />
+      郵便番号: {{ zip }}<br />
+      ご住所: {{ address }}<br />
+      劇場・ホール名: {{ place }}<br />
+      第一希望日程: {{ preferred1 }}<br />
+      第二希望日程: {{ preferred2 }}<br />
+      お時間: {{ schedule }}<br />
+      お席: {{ seat }}<br />
+      枚数: {{ qty }}
+    </p>
+
+    <p>
+      備考: <br />
+      {% autoescape off %}{{ message }}{% endautoescape %}
+    </p>
+  </body>
+</html>

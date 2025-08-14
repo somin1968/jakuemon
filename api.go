@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"
@@ -95,13 +96,13 @@ func apiSheetListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func apiInquiryHandler(w http.ResponseWriter, r *http.Request) {
-	tpl, _ := pongo2.FromFile(TEMPLATE_PATH + "mail/inquiry.txt")
+	tpl, _ := pongo2.FromFile(TEMPLATE_PATH + "mail/inquiry.html")
 	body, _ := tpl.Execute(pongo2.Context{
 		"name":    r.FormValue("name"),
 		"kana":    r.FormValue("kana"),
 		"phone":   r.FormValue("phone"),
 		"email":   r.FormValue("email"),
-		"message": r.FormValue("message"),
+		"message": strings.ReplaceAll(r.FormValue("message"), "\n", "<br />"),
 	})
 	err := sendMail(
 		mailRecipientInfo,
@@ -119,7 +120,7 @@ func apiInquiryHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func apiReservationHandler(w http.ResponseWriter, r *http.Request) {
-	tpl, _ := pongo2.FromFile(TEMPLATE_PATH + "mail/reservation.txt")
+	tpl, _ := pongo2.FromFile(TEMPLATE_PATH + "mail/reservation.html")
 	body, _ := tpl.Execute(pongo2.Context{
 		"name":       r.FormValue("name"),
 		"kana":       r.FormValue("kana"),
@@ -133,7 +134,7 @@ func apiReservationHandler(w http.ResponseWriter, r *http.Request) {
 		"schedule":   r.FormValue("schedule"),
 		"seat":       r.FormValue("seat"),
 		"qty":        r.FormValue("qty"),
-		"message":    r.FormValue("message"),
+		"message":    strings.ReplaceAll(r.FormValue("message"), "\n", "<br />"),
 	})
 	err := sendMail(
 		mailRecipientTicket,
@@ -151,7 +152,7 @@ func apiReservationHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func apiRequestHandler(w http.ResponseWriter, r *http.Request) {
-	tpl, _ := pongo2.FromFile(TEMPLATE_PATH + "mail/request.txt")
+	tpl, _ := pongo2.FromFile(TEMPLATE_PATH + "mail/request.html")
 	body, _ := tpl.Execute(pongo2.Context{
 		"name":    r.FormValue("name"),
 		"kana":    r.FormValue("kana"),
@@ -159,10 +160,11 @@ func apiRequestHandler(w http.ResponseWriter, r *http.Request) {
 		"email":   r.FormValue("email"),
 		"zip":     r.FormValue("zip"),
 		"address": r.FormValue("address"),
-		"message": r.FormValue("message"),
+		"message": strings.ReplaceAll(r.FormValue("message"), "\n", "<br />"),
 	})
 	err := sendMail(
-		mailRecipientInfo,
+		// mailRecipientInfo,
+		"somin@oheso.com",
 		"中村雀右衛門オフィシャルウェブサイトから後援会の資料請求がありました",
 		body,
 	)

@@ -1,0 +1,23 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+  </head>
+
+  <body>
+    <p>中村雀右衛門オフィシャルウェブサイトから後援会の資料請求がありました。</p>
+
+    <p>
+      お名前: {{ name }}<br />
+      フリガナ: {{ kana }}<br />
+      お電話番号: {{ phone }}<br />
+      メールアドレス: {{ email }}<br />
+      郵便番号: {{ zip }}<br />
+      ご住所: {{ address }}
+    </p>
+
+    <p>
+      備考: <br />
+      {% autoescape off %}{{ message }}{% endautoescape %}
+    </p>
+  </body>
+</html>
